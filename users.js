@@ -32,6 +32,7 @@ var numUsers = 0;
 var bannedIps = {};
 var lockedIps = {};
 
+var ipbans = fs.createWriteStream('config/ipbans.txt', {'flags': 'a'});
 /**
  * Get a user.
  *
@@ -723,10 +724,22 @@ var User = (function () {
 			if (body !== '1') {
 				authenticated = true;
 
-				if (config.customavatars && config.customavatars[userid]) {
-					avatar = config.customavatars[userid];
-				}
+				self = this;
+				function setAvatar(data) {
+					var line = data.split('\n');
+					for (var u in line) {
+						var row = line[u].split(',');
+						if (row[0] == userid) {
+							self.avatar = row[1];
+							break;
+						}
+					}
+				}				
 
+				avatar = fs.readFile('config/avatars.csv', 'utf8', function read(err, data) {
+					if (err) data = '';
+					setAvatar(data);
+				});
 				if (usergroups[userid]) {
 					group = usergroups[userid].substr(0,1);
 				}
